@@ -1,0 +1,4 @@
+#ifndef AUTHMANAGER_H
+#define AUTHMANAGER_H
+
+#endif // AUTHMANAGER_H
