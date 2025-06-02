@@ -2,6 +2,7 @@
 #include "ui_mainwindow.h"
 #include "teaminfodialog.h"
 #include "scheduledialog.h"
+#include "managegamesdialog.h"
 #include <QTableWidget>
 #include <QHeaderView>
 #include <QPushButton>
@@ -37,6 +38,13 @@ void MainWindow::on_showTeamptButton_clicked()
 void MainWindow::on_showScheduleButton_clicked()
 {
     ScheduleDialog *dialog = new ScheduleDialog(this);
+    dialog->setAttribute(Qt::WA_DeleteOnClose);
+    dialog->exec();
+}
+
+void MainWindow::on_adminLoginButton_clicked()//暂时用管理员登录进入增删改
+{
+    ManageGamesDialog *dialog= new ManageGamesDialog(this);
     dialog->setAttribute(Qt::WA_DeleteOnClose);
     dialog->exec();
 }

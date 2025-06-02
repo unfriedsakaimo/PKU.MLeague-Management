@@ -21,6 +21,7 @@ public:
 private slots:
     void on_showTeamptButton_clicked();
     void on_showScheduleButton_clicked();
+    void on_adminLoginButton_clicked();
 
 
 private:

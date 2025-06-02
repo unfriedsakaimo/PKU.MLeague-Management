@@ -1,0 +1,13 @@
+release/DatabaseManager.o
+release/main.o
+release/mainwindow.o
+release/managegamesdialog.o
+release/matchdialog.o
+release/scheduledialog.o
+release/teaminfodialog.o
+release/qrc_images.o
+release/moc_mainwindow.o
+release/moc_managegamesdialog.o
+release/moc_matchdialog.o
+release/moc_scheduledialog.o
+release/moc_teaminfodialog.o

@@ -12,6 +12,8 @@ SOURCES += \
     DatabaseManager.cpp \
     main.cpp \
     mainwindow.cpp \
+    managegamesdialog.cpp \
+    matchdialog.cpp \
     scheduledialog.cpp \
     teaminfodialog.cpp
 
@@ -22,6 +24,8 @@ HEADERS += \
     AuthManager.h \
     DatabaseManager.h \
     mainwindow.h \
+    managegamesdialog.h \
+    matchdialog.h \
     scheduledialog.h \
     teaminfodialog.h
 

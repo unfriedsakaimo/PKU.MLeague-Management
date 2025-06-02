@@ -1,0 +1,13 @@
+debug/DatabaseManager.o
+debug/main.o
+debug/mainwindow.o
+debug/managegamesdialog.o
+debug/matchdialog.o
+debug/scheduledialog.o
+debug/teaminfodialog.o
+debug/qrc_images.o
+debug/moc_mainwindow.o
+debug/moc_managegamesdialog.o
+debug/moc_matchdialog.o
+debug/moc_scheduledialog.o
+debug/moc_teaminfodialog.o

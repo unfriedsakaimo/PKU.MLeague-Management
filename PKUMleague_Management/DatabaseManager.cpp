@@ -357,3 +357,99 @@ QList<QMap<QString, QVariant>> DatabaseManager::getCompletedGames() {
     }
     return processQueryResults(query);
 }
+
+/* ---------- 新增比赛 ---------- */
+bool DatabaseManager::addGame(const GameRecord& r)
+{
+    if (!db.isOpen()) return false;
+
+    QSqlQuery q;
+    q.prepare(R"(
+        INSERT INTO games (
+            id,eTeam,sTeam,wTeam,nTeam,
+            ePlayer,sPlayer,wPlayer,nPlayer,
+            eScore,sScore,wScore,nScore,
+            ePt,sPt,wPt,nPt,
+            ePos,sPos,wPos,nPos,
+            time,state
+        ) VALUES (
+            :id,:eTeam,:sTeam,:wTeam,:nTeam,
+            :ePlayer,:sPlayer,:wPlayer,:nPlayer,
+            :eScore,:sScore,:wScore,:nScore,
+            :ePt,:sPt,:wPt,:nPt,
+            :ePos,:sPos,:wPos,:nPos,
+            :time,:state
+        )
+    )");
+    q.bindValue(":id",      r.id);
+    q.bindValue(":eTeam",   r.eTeam);   q.bindValue(":sTeam",   r.sTeam);
+    q.bindValue(":wTeam",   r.wTeam);   q.bindValue(":nTeam",   r.nTeam);
+    q.bindValue(":ePlayer", r.ePlayer); q.bindValue(":sPlayer", r.sPlayer);
+    q.bindValue(":wPlayer", r.wPlayer); q.bindValue(":nPlayer", r.nPlayer);
+    q.bindValue(":eScore",  r.eScore);  q.bindValue(":sScore",  r.sScore);
+    q.bindValue(":wScore",  r.wScore);  q.bindValue(":nScore",  r.nScore);
+    q.bindValue(":ePt",     r.ePt);     q.bindValue(":sPt",     r.sPt);
+    q.bindValue(":wPt",     r.wPt);     q.bindValue(":nPt",     r.nPt);
+    q.bindValue(":ePos",    r.ePos);    q.bindValue(":sPos",    r.sPos);
+    q.bindValue(":wPos",    r.wPos);    q.bindValue(":nPos",    r.nPos);
+    q.bindValue(":time",    r.time.toString(Qt::ISODate));
+    q.bindValue(":state",   r.state);
+
+    if (!q.exec()) {
+        qDebug() << "创建比赛失败:" << q.lastError();
+        return false;
+    }
+    return true;
+}
+
+/* ---------- 更新比赛 ---------- */
+bool DatabaseManager::updateGame(const GameRecord& r)
+{
+    if (!db.isOpen()) return false;
+
+    QSqlQuery q;
+    q.prepare(R"(
+        UPDATE games SET
+            eTeam=:eTeam, sTeam=:sTeam, wTeam=:wTeam, nTeam=:nTeam,
+            ePlayer=:ePlayer, sPlayer=:sPlayer, wPlayer=:wPlayer, nPlayer=:nPlayer,
+            eScore=:eScore, sScore=:sScore, wScore=:wScore, nScore=:nScore,
+            ePt=:ePt, sPt=:sPt, wPt=:wPt, nPt=:nPt,
+            ePos=:ePos, sPos=:sPos, wPos=:wPos, nPos=:nPos,
+            time=:time, state=:state
+        WHERE id=:id
+    )");
+    q.bindValue(":id",      r.id);
+    q.bindValue(":eTeam",   r.eTeam);   q.bindValue(":sTeam",   r.sTeam);
+    q.bindValue(":wTeam",   r.wTeam);   q.bindValue(":nTeam",   r.nTeam);
+    q.bindValue(":ePlayer", r.ePlayer); q.bindValue(":sPlayer", r.sPlayer);
+    q.bindValue(":wPlayer", r.wPlayer); q.bindValue(":nPlayer", r.nPlayer);
+    q.bindValue(":eScore",  r.eScore);  q.bindValue(":sScore",  r.sScore);
+    q.bindValue(":wScore",  r.wScore);  q.bindValue(":nScore",  r.nScore);
+    q.bindValue(":ePt",     r.ePt);     q.bindValue(":sPt",     r.sPt);
+    q.bindValue(":wPt",     r.wPt);     q.bindValue(":nPt",     r.nPt);
+    q.bindValue(":ePos",    r.ePos);    q.bindValue(":sPos",    r.sPos);
+    q.bindValue(":wPos",    r.wPos);    q.bindValue(":nPos",    r.nPos);
+    q.bindValue(":time",    r.time.toString(Qt::ISODate));
+    q.bindValue(":state",   r.state);
+
+    if (!q.exec()) {
+        qDebug() << "编辑比赛失败:" << q.lastError();
+        return false;
+    }
+    return q.numRowsAffected() == 1;
+}
+
+/* ---------- 删除比赛 ---------- */
+bool DatabaseManager::deleteGame(int id)
+{
+    if (!db.isOpen()) return false;
+
+    QSqlQuery q;
+    q.prepare("DELETE FROM games WHERE id=:id");
+    q.bindValue(":id", id);
+    if (!q.exec()) {
+        qDebug() << "删除比赛失败:" << q.lastError();
+        return false;
+    }
+    return q.numRowsAffected() == 1;
+}

@@ -10,7 +10,18 @@
 #include <QMap>
 #include <QVariant>
 #include <QList>
-
+#include <QDateTime>
+struct GameRecord {
+    int         id;
+    int         eTeam=0, sTeam=1, wTeam=2, nTeam=3;
+    QString     ePlayer, sPlayer, wPlayer, nPlayer;
+    int         eScore = 250, sScore = 250, wScore = 250, nScore = 250;
+    double      ePt, sPt, wPt, nPt;
+    int         ePos, sPos, wPos, nPos;
+    QDateTime   time;
+    int         state = 0;                            // 0=未进行 1=已完成
+};
+Q_DECLARE_METATYPE(GameRecord)
 class DatabaseManager
 {
 public:
@@ -18,6 +29,10 @@ public:
     bool initialize();
 
     bool isDatabaseOpen() const;
+
+    bool addGame   (const GameRecord& rec);   // 新增
+    bool updateGame(const GameRecord& rec);   // 以 id 为主键更新
+    bool deleteGame(int gameId);              // 删除
 
     // 队伍信息查询
     QList<QMap<QString, QVariant>> getAllTeams();
