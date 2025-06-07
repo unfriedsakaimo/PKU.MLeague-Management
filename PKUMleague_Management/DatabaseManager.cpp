@@ -228,11 +228,22 @@ bool DatabaseManager::initialize()
             qDebug() << "插入编号2失败:" << query.lastError();
         }
     }
-
+    // 清空旧的 auth 表，仅测试阶段用
+    query.exec("DELETE FROM auth;");
     // 插入管理员账号（如果表为空）
     query.exec("SELECT COUNT(*) FROM auth;");
     if (query.next() && query.value(0).toInt() == 0) {
-        query.exec("INSERT INTO auth (username, password, role) VALUES ('admin', '123456', 'admin');");
+        // 管理员
+        query.exec("INSERT INTO auth (username, password, role, team_id) "
+                   "VALUES ('admin', '123456', 'admin', NULL);");
+
+        // 队长 0  —— 关联队伍 id = 0
+        query.exec("INSERT INTO auth (username, password, role, team_id) "
+                   "VALUES ('captain0', 'c0pass', 'captain', 0);");
+
+        // 队长 1  —— 关联队伍 id = 1
+        query.exec("INSERT INTO auth (username, password, role, team_id) "
+                   "VALUES ('captain1', 'c1pass', 'captain', 1);");
     }
 
     return true;

@@ -25,13 +25,14 @@ MatchDialog::MatchDialog(QWidget *parent)
 }
 
 /*===== 2. 构造函数：编辑 =====*/
+/*
 MatchDialog::MatchDialog(const GameRecord &src, QWidget *parent)
     : QDialog(parent), rec_(src)
 {
     initUi();
     setWindowTitle("编辑比赛");
 
-    /* 将旧数据灌入控件 */
+
     leId->setText(QString::number(src.id));
     leId->setEnabled(false);                              // 主键不可改
     dtTime->setDateTime(src.time);
@@ -44,19 +45,94 @@ MatchDialog::MatchDialog(const GameRecord &src, QWidget *parent)
     Wplayer->setCurrentIndex(Wplayer->findData(src.wPlayer));
     Nplayer->setCurrentIndex(Nplayer->findData(src.nPlayer));
     state->setCurrentIndex(state->findData(src.state));
-    /* 若增加分数/选手字段，同理在此处加载 */
-}
 
+}
+*/
+MatchDialog::MatchDialog(QWidget *parent,
+                         const GameRecord &rec,
+                         LoginDialog::UserRole role,
+                         int captainTeamId)
+    : QDialog(parent)
+    , role_(role)
+    , captainTeamId_(captainTeamId)
+
+{
+
+    initUi();
+    // 只有管理员可选队伍和比分
+    bool admin = (role_ == LoginDialog::UserRole::Admin);
+    cbE->setEnabled(admin);
+    cbS->setEnabled(admin);
+    cbW->setEnabled(admin);
+    cbN->setEnabled(admin);
+    dtTime->setEnabled(admin);
+    state->setEnabled(admin);
+    //spE->setEnabled(admin);
+    //spS->setEnabled(admin);
+    //spW->setEnabled(admin);
+    //spN->setEnabled(admin);
+
+    // 队长只能改自己队的选手：
+    //    disable all player combos except the one for captainTeamId_
+    if (!admin) {
+        // 先禁用全部
+        Eplayer->setEnabled(false);
+        Splayer->setEnabled(false);
+        Wplayer->setEnabled(false);
+        Nplayer->setEnabled(false);
+        // 再给“本队”对应那一家的下拉框开门
+        if (captainTeamId_ == rec.eTeam) {
+            Eplayer->setEnabled(true);
+        }
+        else if (captainTeamId_ == rec.sTeam) {
+            Splayer->setEnabled(true);
+        }
+        else if (captainTeamId_ == rec.wTeam) {
+            Wplayer->setEnabled(true);
+        }
+        else if (captainTeamId_ == rec.nTeam) {
+            Nplayer->setEnabled(true);
+        }
+    }
+
+    // 其余代码：填数据、连接信号、OK 按钮
+    setWindowTitle("编辑比赛");
+
+    /* 将旧数据灌入控件 */
+    leId->setText(QString::number(rec.id));
+    leId->setEnabled(false);                              // 主键不可改
+    dtTime->setDateTime(rec.time);
+    cbE->setCurrentIndex(cbE->findData(rec.eTeam));
+    cbS->setCurrentIndex(cbS->findData(rec.sTeam));
+    cbW->setCurrentIndex(cbW->findData(rec.wTeam));
+    cbN->setCurrentIndex(cbN->findData(rec.nTeam));
+    Eplayer->setCurrentIndex(Eplayer->findData(rec.ePlayer));
+    Splayer->setCurrentIndex(Splayer->findData(rec.sPlayer));
+    Wplayer->setCurrentIndex(Wplayer->findData(rec.wPlayer));
+    Nplayer->setCurrentIndex(Nplayer->findData(rec.nPlayer));
+    state->setCurrentIndex(state->findData(rec.state));
+
+}
 /*===== 3. initUi：统一建 UI =====*/
 void MatchDialog::initUi()
 {
-    auto fillPlayers = [this](QComboBox *teamCb, QComboBox *playerCb){
+    auto fillPlayers = [this](QComboBox *teamCb, QComboBox *playerCb,const QString &currentPlayerId = QString()){
         playerCb->clear();
-        playerCb->addItem("— 请选择 —", QString());
+        // 只有当 currentPlayerId 为空时，才加入 “— 请选择 —”
+        if (currentPlayerId.isEmpty()) {
+            playerCb->addItem("— 请选择 —", QString());
+        }
         int tid = teamCb->currentData().toInt();
         for (auto m : DatabaseManager::instance().getAllPlayers()) {
             if (m["id"].toString().toInt()/10 == tid)       // 满足就加入
                 playerCb->addItem(m["name"].toString(), m["id"].toString());
+        }
+        if (!currentPlayerId.isEmpty()) {
+            int index = playerCb->findData(currentPlayerId);
+            if (index >= 0) {
+                playerCb->setCurrentIndex(index);
+                return;
+            }
         }
         playerCb->setCurrentIndex(0);
     };
@@ -143,7 +219,7 @@ void MatchDialog::onAccept()
     rec_.sTeam  = cbS->currentData().toInt();
     rec_.wTeam  = cbW->currentData().toInt();
     rec_.nTeam  = cbN->currentData().toInt();
-    rec_.state  = state->currentData().toInt();                    // 新建默认未进行
+    rec_.state  = state->currentData().toInt();
     rec_.ePlayer = Eplayer->currentData().toString();
     rec_.sPlayer = Splayer->currentData().toString();
     rec_.wPlayer = Wplayer->currentData().toString();

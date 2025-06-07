@@ -1,4 +1,5 @@
 release/DatabaseManager.o
+release/logindialog.o
 release/main.o
 release/mainwindow.o
 release/managegamesdialog.o
@@ -6,6 +7,7 @@ release/matchdialog.o
 release/scheduledialog.o
 release/teaminfodialog.o
 release/qrc_images.o
+release/moc_logindialog.o
 release/moc_mainwindow.o
 release/moc_managegamesdialog.o
 release/moc_matchdialog.o

@@ -10,6 +10,7 @@ CONFIG += c++17
 
 SOURCES += \
     DatabaseManager.cpp \
+    logindialog.cpp \
     main.cpp \
     mainwindow.cpp \
     managegamesdialog.cpp \
@@ -23,6 +24,7 @@ HEADERS += \
     AuthManager.h \
     AuthManager.h \
     DatabaseManager.h \
+    logindialog.h \
     mainwindow.h \
     managegamesdialog.h \
     matchdialog.h \
@@ -30,6 +32,7 @@ HEADERS += \
     teaminfodialog.h
 
 FORMS += \
+    logindialog.ui \
     mainwindow.ui \
     scheduledialog.ui
 

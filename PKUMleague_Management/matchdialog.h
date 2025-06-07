@@ -11,7 +11,7 @@
 #include <QVBoxLayout>
 #include <QMessageBox>
 #include <QSet>
-
+#include "logindialog.h"
 #include "DatabaseManager.h"
 
 /*-------------------------------------------------
@@ -35,8 +35,11 @@ public:
     explicit MatchDialog(QWidget *parent = nullptr);
 
     /* 编辑比赛（传入已有记录）*/
-    explicit MatchDialog(const GameRecord &src, QWidget *parent = nullptr);
-
+    //explicit MatchDialog(const GameRecord &src, QWidget *parent = nullptr);
+    MatchDialog(QWidget *parent,
+                const GameRecord &rec,
+                LoginDialog::UserRole role,
+                int captainTeamId);
     /* 交互结束后通过此函数拿到表单填好的 GameRecord */
     GameRecord result() const { return rec_; }
 
@@ -50,7 +53,8 @@ private:
 
     // ---------- 成员 ----------
     GameRecord           rec_;               // 表单对应的纪录
-
+    LoginDialog::UserRole role_;
+    int                   captainTeamId_;
     // —— 核心控件 —— //
     QLineEdit          *leId       = nullptr;
     QDateTimeEdit      *dtTime     = nullptr;

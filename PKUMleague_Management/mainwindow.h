@@ -3,7 +3,7 @@
 
 #include <QMainWindow>
 #include "DatabaseManager.h"
-
+#include "logindialog.h"
 QT_BEGIN_NAMESPACE
 namespace Ui {
 class MainWindow;
@@ -22,7 +22,7 @@ private slots:
     void on_showTeamptButton_clicked();
     void on_showScheduleButton_clicked();
     void on_adminLoginButton_clicked();
-
+    void on_captainLoginButton_clicked();
 
 private:
     Ui::MainWindow *ui;

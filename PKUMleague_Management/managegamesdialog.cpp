@@ -25,7 +25,36 @@ ManageGamesDialog::ManageGamesDialog(QWidget *parent)
 
     reloadGames();
 }
+ManageGamesDialog::ManageGamesDialog(QWidget *parent,
+                                     LoginDialog::UserRole role,
+                                     int teamId)
+    : QDialog(parent)
+    , role_(role)
+    , teamId_(teamId)
+{
+    setWindowTitle("比赛管理");
+    resize(800, 600);
+    buildUi();
+    view_->setStyleSheet(R"(
+        /* 深橙高亮：控件有焦点时 */
+        QTableView::item:selected          { background:#ffbb55; color:#000; }
 
+        /* 控件失焦仍保持较暗高亮 */
+        QTableView::item:selected:!active  { background:#d0aa70; color:#000; }
+
+        /* 鼠标悬停行 */
+        QTableView::item:hover             { background:#ffe2b3; }
+
+        /* 交替底色（可选）——若 buildUi() 中 setAlternatingRowColors(true) */
+        /* QTableView { alternate-background-color:#f7f7f7; } */
+    )");
+    // 如果不是管理员，就屏蔽“新建”和“删除”按钮
+    if (role_ != LoginDialog::UserRole::Admin) {
+        acAdd_->setEnabled(false);
+        acDel_->setEnabled(false);
+    }
+    reloadGames();
+}
 /* ----- UI ----- */
 void ManageGamesDialog::buildUi()
 {
@@ -40,12 +69,12 @@ void ManageGamesDialog::buildUi()
             this,  &ManageGamesDialog::onRowDoubleClicked);
 
     tb_ = new QToolBar(this);
-    QAction *acAdd = tb_->addAction("新建");
-    QAction *acEdit= tb_->addAction("编辑");
-    QAction *acDel = tb_->addAction("删除");
-    connect(acAdd , &QAction::triggered, this, &ManageGamesDialog::onAdd);
-    connect(acEdit, &QAction::triggered, this, &ManageGamesDialog::onEdit);
-    connect(acDel , &QAction::triggered, this, &ManageGamesDialog::onDel);
+    acAdd_ = tb_->addAction("新建");
+    acEdit_= tb_->addAction("编辑");
+    acDel_ = tb_->addAction("删除");
+    connect(acAdd_ , &QAction::triggered, this, &ManageGamesDialog::onAdd);
+    connect(acEdit_, &QAction::triggered, this, &ManageGamesDialog::onEdit);
+    connect(acDel_ , &QAction::triggered, this, &ManageGamesDialog::onDel);
 
     auto lay = new QVBoxLayout(this);
     lay->addWidget(tb_);
@@ -101,7 +130,7 @@ void ManageGamesDialog::onEdit()
     if (!idx.isValid()) return;
 
     GameRecord g = idx.siblingAtColumn(0).data(Qt::UserRole).value<GameRecord>();
-    MatchDialog dlg(g, this);
+    MatchDialog dlg(this,g,role_,teamId_);
     if (dlg.exec()==QDialog::Accepted)
         if (db_.updateGame(dlg.result()))
             reloadGames();
