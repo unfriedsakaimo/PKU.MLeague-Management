@@ -99,6 +99,10 @@ void ManageGamesDialog::reloadGames()
         g.sTeam = m["sTeam"].toInt();
         g.wTeam = m["wTeam"].toInt();
         g.nTeam = m["nTeam"].toInt();
+        g.ePlayer = m["ePlayer"].toString();
+        g.sPlayer = m["sPlayer"].toString();
+        g.wPlayer = m["wPlayer"].toString();
+        g.nPlayer = m["nPlayer"].toString();
         g.state = m["state"].toInt();
 
         QList<QStandardItem*> row;

@@ -15,13 +15,32 @@ static void populateTeamCombo(QComboBox *combo)
     for (const auto &m : teams)         // m 是 QMap<QString,QVariant>
         combo->addItem(m["name"].toString(), m["id"].toInt());
 }
+static void populatePlayerCombo(QComboBox *teamCb,
+                                QComboBox *playerCb,
+                                bool includeEmpty = true)
+{
+    playerCb->clear();
+    if (includeEmpty)
+        playerCb->addItem("— 请选择 —", QString());
 
+    int tid = teamCb->currentData().toInt();
+    for (auto &m : DatabaseManager::instance().getAllPlayers()) {
+        // 假设选手ID 的十位是队伍ID
+        if (m["id"].toString().toInt() / 10 == tid) {
+            playerCb->addItem(
+                m["name"].toString(),
+                m["id"].toString()
+                );
+        }
+    }
+}
 /*===== 1. 构造函数：新建 =====*/
 MatchDialog::MatchDialog(QWidget *parent)
     : QDialog(parent)
 {
     initUi();
     setWindowTitle("新建比赛");
+
 }
 
 /*===== 2. 构造函数：编辑 =====*/
@@ -81,17 +100,19 @@ MatchDialog::MatchDialog(QWidget *parent,
         Wplayer->setEnabled(false);
         Nplayer->setEnabled(false);
         // 再给“本队”对应那一家的下拉框开门
-        if (captainTeamId_ == rec.eTeam) {
-            Eplayer->setEnabled(true);
-        }
-        else if (captainTeamId_ == rec.sTeam) {
-            Splayer->setEnabled(true);
-        }
-        else if (captainTeamId_ == rec.wTeam) {
-            Wplayer->setEnabled(true);
-        }
-        else if (captainTeamId_ == rec.nTeam) {
-            Nplayer->setEnabled(true);
+        if (rec.state == 0){
+            if (captainTeamId_ == rec.eTeam) {
+                Eplayer->setEnabled(true);
+            }
+            else if (captainTeamId_ == rec.sTeam) {
+                Splayer->setEnabled(true);
+            }
+            else if (captainTeamId_ == rec.wTeam) {
+                Wplayer->setEnabled(true);
+            }
+            else if (captainTeamId_ == rec.nTeam) {
+                Nplayer->setEnabled(true);
+            }
         }
     }
 
@@ -107,6 +128,20 @@ MatchDialog::MatchDialog(QWidget *parent,
     cbW->setCurrentIndex(cbW->findData(rec.wTeam));
     cbN->setCurrentIndex(cbN->findData(rec.nTeam));
     Eplayer->setCurrentIndex(Eplayer->findData(rec.ePlayer));
+    //int idx = Eplayer->findData(rec.ePlayer);
+    //qDebug() << "Eplayer.findData(" << rec.ePlayer << ") =" << idx;
+    //if (idx >= 0) {
+    //    Eplayer->setCurrentIndex(idx);
+    //} else {
+    //    qDebug() << "  -- 找不到该选手 ID，列表里有哪些数据？";
+    //    for (int i = 0; i < Eplayer->count(); ++i) {
+    //        qDebug() << "     [" << i << "]"
+    //                 << Eplayer->itemData(i).toString()
+    //                 << "(" << Eplayer->itemText(i) << ")";
+    //    }
+        // （可选）给一个 fallback
+    //    Eplayer->setCurrentIndex(0);
+    //}
     Splayer->setCurrentIndex(Splayer->findData(rec.sPlayer));
     Wplayer->setCurrentIndex(Wplayer->findData(rec.wPlayer));
     Nplayer->setCurrentIndex(Nplayer->findData(rec.nPlayer));
@@ -149,7 +184,7 @@ void MatchDialog::initUi()
     state->addItem("未进行", 0);
     state->addItem("已完成", 1);
 
-    for (QComboBox *cb : {cbE, cbS, cbW, cbN,Eplayer,Splayer,Wplayer,Nplayer})
+    for (QComboBox *cb : {cbE, cbS, cbW, cbN})
         populateTeamCombo(cb);
 
     /* ---------- 表单布局 ---------- */
@@ -172,17 +207,17 @@ void MatchDialog::initUi()
     connect(btnBox, &QDialogButtonBox::rejected,
             this,       &MatchDialog::reject);
     connect(cbE, &QComboBox::currentIndexChanged,
-            this, [=]{ fillPlayers(cbE, Eplayer); });
+            this, [=]{ populatePlayerCombo(cbE, Eplayer); });
     connect(cbS, &QComboBox::currentIndexChanged,
-            this, [=]{ fillPlayers(cbS, Splayer); });
+            this, [=]{ populatePlayerCombo(cbS, Splayer); });
     connect(cbW, &QComboBox::currentIndexChanged,
-            this, [=]{ fillPlayers(cbW, Wplayer); });
+            this, [=]{ populatePlayerCombo(cbW, Wplayer); });
     connect(cbN, &QComboBox::currentIndexChanged,
-            this, [=]{ fillPlayers(cbN, Nplayer); });
-    fillPlayers(cbE, Eplayer);
-    fillPlayers(cbS, Splayer);
-    fillPlayers(cbW, Wplayer);
-    fillPlayers(cbN, Nplayer);
+            this, [=]{ populatePlayerCombo(cbN, Nplayer); });
+    populatePlayerCombo(cbE, Eplayer);
+    populatePlayerCombo(cbS, Splayer);
+    populatePlayerCombo(cbW, Wplayer);
+    populatePlayerCombo(cbN, Nplayer);
     auto lay = new QVBoxLayout(this);
     lay->addLayout(form);
     lay->addWidget(btnBox);
