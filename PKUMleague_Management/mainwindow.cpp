@@ -4,6 +4,7 @@
 #include "teaminfodialog.h"
 #include "scheduledialog.h"
 #include "managegamesdialog.h"
+#include "playerinfodialog.h"
 #include <QTableWidget>
 #include <QHeaderView>
 #include <QPushButton>
@@ -32,6 +33,13 @@ MainWindow::~MainWindow()
 void MainWindow::on_showTeamptButton_clicked()
 {
     TeamInfoDialog *dialog = new TeamInfoDialog(this);
+    dialog->setAttribute(Qt::WA_DeleteOnClose);
+    dialog->exec();
+}
+
+void MainWindow::on_showPlayerptButton_clicked()
+{
+    PlayerInfoDialog *dialog = new PlayerInfoDialog(this);
     dialog->setAttribute(Qt::WA_DeleteOnClose);
     dialog->exec();
 }

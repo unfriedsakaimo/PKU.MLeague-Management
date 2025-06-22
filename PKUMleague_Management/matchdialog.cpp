@@ -5,6 +5,7 @@
 #include <QDialogButtonBox>
 #include <QMessageBox>
 #include <QSet>
+#include <QLabel>
 
 /*-------------------------------------------------
  * 公共工具：把队伍列表灌进四个下拉框
@@ -147,6 +148,7 @@ MatchDialog::MatchDialog(QWidget *parent,
     Nplayer->setCurrentIndex(Nplayer->findData(rec.nPlayer));
     state->setCurrentIndex(state->findData(rec.state));
 
+
 }
 /*===== 3. initUi：统一建 UI =====*/
 void MatchDialog::initUi()
@@ -222,6 +224,80 @@ void MatchDialog::initUi()
     lay->addLayout(form);
     lay->addWidget(btnBox);
     setLayout(lay);
+
+    // ===== 新增：比赛结果输入部分 =====
+    resultsGroup = new QGroupBox("比赛结果");
+    resultsGroup->setVisible(false); // 默认隐藏
+
+    auto resultsLayout = new QGridLayout;
+
+    // 添加标签
+    resultsLayout->addWidget(new QLabel("队伍"), 0, 0);
+    resultsLayout->addWidget(new QLabel("Pt变化"), 0, 1);
+    resultsLayout->addWidget(new QLabel("顺位"), 0, 2);
+
+    // 东家
+    spEpt = new QDoubleSpinBox;
+    spEpt->setRange(-100.0, 100.0);
+    spEpt->setSingleStep(0.1);
+    spEpt->setDecimals(1);
+    cbEpos = new QComboBox;
+    cbEpos->addItems({"1", "2", "3", "4"});
+    resultsLayout->addWidget(new QLabel("东家"), 1, 0);
+    resultsLayout->addWidget(spEpt, 1, 1);
+    resultsLayout->addWidget(cbEpos, 1, 2);
+
+    // 南家
+    spSpt = new QDoubleSpinBox;
+    spSpt->setRange(-100.0, 100.0);
+    spSpt->setSingleStep(0.1);
+    spSpt->setDecimals(1);
+    cbSpos = new QComboBox;
+    cbSpos->addItems({"1", "2", "3", "4"});
+    resultsLayout->addWidget(new QLabel("南家"), 2, 0);
+    resultsLayout->addWidget(spSpt, 2, 1);
+    resultsLayout->addWidget(cbSpos, 2, 2);
+
+    // 西家
+    spWpt = new QDoubleSpinBox;
+    spWpt->setRange(-100.0, 100.0);
+    spWpt->setSingleStep(0.1);
+    spWpt->setDecimals(1);
+    cbWpos = new QComboBox;
+    cbWpos->addItems({"1", "2", "3", "4"});
+    resultsLayout->addWidget(new QLabel("西家"), 3, 0);
+    resultsLayout->addWidget(spWpt, 3, 1);
+    resultsLayout->addWidget(cbWpos, 3, 2);
+
+    // 北家
+    spNpt = new QDoubleSpinBox;
+    spNpt->setRange(-100.0, 100.0);
+    spNpt->setSingleStep(0.1);
+    spNpt->setDecimals(1);
+    cbNpos = new QComboBox;
+    cbNpos->addItems({"1", "2", "3", "4"});
+    resultsLayout->addWidget(new QLabel("北家"), 4, 0);
+    resultsLayout->addWidget(spNpt, 4, 1);
+    resultsLayout->addWidget(cbNpos, 4, 2);
+
+    resultsGroup->setLayout(resultsLayout);
+
+    // 添加Pt变化信号连接
+    connect(spEpt, QOverload<double>::of(&QDoubleSpinBox::valueChanged),
+            this, &MatchDialog::updatePositionsFromPt);
+    connect(spSpt, QOverload<double>::of(&QDoubleSpinBox::valueChanged),
+            this, &MatchDialog::updatePositionsFromPt);
+    connect(spWpt, QOverload<double>::of(&QDoubleSpinBox::valueChanged),
+            this, &MatchDialog::updatePositionsFromPt);
+    connect(spNpt, QOverload<double>::of(&QDoubleSpinBox::valueChanged),
+            this, &MatchDialog::updatePositionsFromPt);
+
+    // 添加结果分组框到主布局
+    lay->addWidget(resultsGroup);
+
+    // 连接状态变化信号
+    connect(state, QOverload<int>::of(&QComboBox::currentIndexChanged),
+            this, &MatchDialog::onStateChanged);
 }
 
 /*===== 4. onAccept：校验并生成 GameRecord =====*/
@@ -259,7 +335,83 @@ void MatchDialog::onAccept()
     rec_.sPlayer = Splayer->currentData().toString();
     rec_.wPlayer = Wplayer->currentData().toString();
     rec_.nPlayer = Nplayer->currentData().toString();
+
+    // 如果比赛已完成，验证结果
+    if (rec_.state == 1) {
+        // 保存Pt数据
+        rec_.ePt = spEpt->value();
+        rec_.sPt = spSpt->value();
+        rec_.wPt = spWpt->value();
+        rec_.nPt = spNpt->value();
+
+        // 保存顺位数据
+        rec_.ePos = cbEpos->currentIndex() + 1; // 索引转顺位(1-4)
+        rec_.sPos = cbSpos->currentIndex() + 1;
+        rec_.wPos = cbWpos->currentIndex() + 1;
+        rec_.nPos = cbNpos->currentIndex() + 1;
+
+        // 验证顺位唯一
+        QSet<int> positions = {
+            rec_.ePos, rec_.sPos, rec_.wPos, rec_.nPos
+        };
+
+        if (positions.size() != 4) {
+            QMessageBox::warning(this, "顺位错误", "顺位必须各不相同！");
+            return;
+        }
+    }
     /* 若有分数/选手字段，在此继续 rec_.eScore = … */
 
     accept();                           // 关闭对话框并返回 Accepted
+}
+
+void MatchDialog::onStateChanged(int index) {
+    bool completed = (state->itemData(index).toInt() == 1);
+    resultsGroup->setVisible(completed);
+
+    // 只有管理员可以编辑结果
+        bool admin = (role_ == LoginDialog::UserRole::Admin);
+
+    // 如果是管理员且状态变为"已完成"，启用结果输入
+    if (admin && completed) {
+        spEpt->setEnabled(true);
+        cbEpos->setEnabled(true);
+        spSpt->setEnabled(true);
+        cbSpos->setEnabled(true);
+        spWpt->setEnabled(true);
+        cbWpos->setEnabled(true);
+        spNpt->setEnabled(true);
+        cbNpos->setEnabled(true);
+    }
+    // 如果是队长，禁用结果输入
+    else if (!admin) {
+        spEpt->setEnabled(false);
+        cbEpos->setEnabled(false);
+        spSpt->setEnabled(false);
+        cbSpos->setEnabled(false);
+        spWpt->setEnabled(false);
+        cbWpos->setEnabled(false);
+        spNpt->setEnabled(false);
+        cbNpos->setEnabled(false);
+    }
+}
+
+void MatchDialog::updatePositionsFromPt() {
+    // 获取Pt值
+    QMap<double, QComboBox*> ptMap = {
+        {spEpt->value(), cbEpos},
+        {spSpt->value(), cbSpos},
+        {spWpt->value(), cbWpos},
+        {spNpt->value(), cbNpos}
+    };
+
+    // 按Pt值降序排序
+    QList<double> sortedPt = ptMap.keys();
+    std::sort(sortedPt.begin(), sortedPt.end(), std::greater<double>());
+
+    // 分配顺位
+    for (int i = 0; i < sortedPt.size(); i++) {
+        QComboBox* combo = ptMap[sortedPt[i]];
+        combo->setCurrentIndex(i); // 1位=0, 2位=1, 3位=2, 4位=3
+    }
 }

@@ -15,8 +15,9 @@ SOURCES += \
     mainwindow.cpp \
     managegamesdialog.cpp \
     matchdialog.cpp \
+    playerinfodialog.cpp \
     scheduledialog.cpp \
-    teaminfodialog.cpp
+    teaminfodialog.cpp \
 
 HEADERS += \
     AuthManager.h \
@@ -28,8 +29,9 @@ HEADERS += \
     mainwindow.h \
     managegamesdialog.h \
     matchdialog.h \
+    playerinfodialog.h \
     scheduledialog.h \
-    teaminfodialog.h
+    teaminfodialog.h \
 
 FORMS += \
     logindialog.ui \

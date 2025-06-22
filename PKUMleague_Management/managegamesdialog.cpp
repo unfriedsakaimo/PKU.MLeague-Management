@@ -115,6 +115,7 @@ void ManageGamesDialog::reloadGames()
             << new QStandardItem(db_.getTeamById(g.wTeam)["name"].toString())
             << new QStandardItem(db_.getTeamById(g.nTeam)["name"].toString())
             << new QStandardItem(g.state ? "已完成" : "未进行");
+
         model_->appendRow(row);
     }
 }

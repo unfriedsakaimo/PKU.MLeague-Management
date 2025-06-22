@@ -23,6 +23,7 @@ private slots:
     void on_showScheduleButton_clicked();
     void on_adminLoginButton_clicked();
     void on_captainLoginButton_clicked();
+    void on_showPlayerptButton_clicked();
 
 private:
     Ui::MainWindow *ui;

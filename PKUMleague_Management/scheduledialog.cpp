@@ -37,6 +37,7 @@ void ScheduleDialog::loadSchedule()
 
     for (int i = 0; i < games.size(); ++i) {
         const QMap<QString, QVariant>& game = games[i];
+        int gameState = game["state"].toInt(); // 获取比赛状态
 
         // 1. 编号
         QTableWidgetItem *idItem = new QTableWidgetItem(QString::number(game["id"].toInt()));
@@ -81,7 +82,7 @@ void ScheduleDialog::loadSchedule()
                 }
             }
 
-            if (game.contains(ptKey) && !game[ptKey].isNull()) {
+            if (gameState == 1 &&game.contains(ptKey) && !game[ptKey].isNull()) {
                 double pt = game[ptKey].toDouble();
                 QString ptStr = pt >= 0 ? "+" + QString::number(pt, 'f', 1) : QString::number(pt, 'f', 1);
                 text += "\n" + ptStr;

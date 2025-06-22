@@ -54,6 +54,9 @@ private:
     DatabaseManager();
     QSqlDatabase db;
 
+    void updateTeamStats(int teamId, int position, double ptChange);
+    void updatePlayerStats(const QString& playerId, int position, double ptChange);
+
     // 通用查询结果处理
     QList<QMap<QString, QVariant>> processQueryResults(QSqlQuery& query);
 };

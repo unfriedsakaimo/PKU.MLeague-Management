@@ -73,7 +73,6 @@ bool DatabaseManager::initialize()
         "wPt REAL, "
         "nPt REAL, "
         "CHECK (eTeam != sTeam AND eTeam != wTeam AND eTeam != nTeam AND sTeam != wTeam AND sTeam != nTeam AND wTeam != nTeam)" //座次唯一性
-        "CHECK (eScore + sScore + wScore + nScore  == 1000)" //确认最终分数总和为1000
         ");"
         );
 
@@ -139,6 +138,9 @@ bool DatabaseManager::initialize()
         return false;
     }
 
+    //测试阶段：清空测试数据
+    query.exec("DELETE FROM teams;");
+
     // 插入预定义队伍数据（如果表为空）
     query.exec("SELECT COUNT(*) FROM teams;");
     if (query.next() && query.value(0).toInt() == 0) {
@@ -156,6 +158,7 @@ bool DatabaseManager::initialize()
         }
     }
 
+    //清空测试数据
     query.exec("DELETE FROM players;");
 
     // 插入预定义选手数据（如果表为空）
@@ -187,7 +190,7 @@ bool DatabaseManager::initialize()
         }
     }
 
-    // 清空所有测试数据（仅限测试阶段使用！）
+    // 清空测试数据
     query.exec("DELETE FROM games;");
 
 
@@ -418,6 +421,17 @@ bool DatabaseManager::updateGame(const GameRecord& r)
 {
     if (!db.isOpen()) return false;
 
+    // 获取旧状态
+    int oldState = 0;
+    QSqlQuery query;
+    query.prepare("SELECT state FROM games WHERE id = :id");
+    query.bindValue(":id", r.id);
+    if (query.exec() && query.next()) {
+        oldState = query.value(0).toInt();
+    } else {
+        qDebug() << "获取旧状态失败:" << query.lastError();
+    }
+
     QSqlQuery q;
     q.prepare(R"(
         UPDATE games SET
@@ -447,6 +461,22 @@ bool DatabaseManager::updateGame(const GameRecord& r)
         qDebug() << "编辑比赛失败:" << q.lastError();
         return false;
     }
+
+    // 如果状态从未完成(0)变为已完成(1)，更新统计
+    if (oldState == 0 && r.state == 1) {
+        // 更新队伍统计数据
+        updateTeamStats(r.eTeam, r.ePos, r.ePt);
+        updateTeamStats(r.sTeam, r.sPos, r.sPt);
+        updateTeamStats(r.wTeam, r.wPos, r.wPt);
+        updateTeamStats(r.nTeam, r.nPos, r.nPt);
+
+        // 更新选手统计数据
+        updatePlayerStats(r.ePlayer, r.ePos, r.ePt);
+        updatePlayerStats(r.sPlayer, r.sPos, r.sPt);
+        updatePlayerStats(r.wPlayer, r.wPos, r.wPt);
+        updatePlayerStats(r.nPlayer, r.nPos, r.nPt);
+    }
+
     return q.numRowsAffected() == 1;
 }
 
@@ -463,4 +493,57 @@ bool DatabaseManager::deleteGame(int id)
         return false;
     }
     return q.numRowsAffected() == 1;
+}
+
+// 更新队伍统计
+void DatabaseManager::updateTeamStats(int teamId, int position, double ptChange) {
+    QSqlQuery query;
+    query.prepare(
+        "UPDATE teams SET "
+        "total_pt = total_pt + :pt, "
+        "stage_pt = stage_pt + :pt, "
+        "count_total = count_total + 1, "
+        "count_1 = count_1 + :pos1, "
+        "count_2 = count_2 + :pos2, "
+        "count_3 = count_3 + :pos3, "
+        "count_4 = count_4 + :pos4 "
+        "WHERE id = :id"
+        );
+
+    query.bindValue(":pt", ptChange);
+    query.bindValue(":pos1", position == 1 ? 1 : 0);
+    query.bindValue(":pos2", position == 2 ? 1 : 0);
+    query.bindValue(":pos3", position == 3 ? 1 : 0);
+    query.bindValue(":pos4", position == 4 ? 1 : 0);
+    query.bindValue(":id", teamId);
+
+    if (!query.exec()) {
+        qDebug() << "更新队伍统计失败:" << query.lastError();
+    }
+}
+
+//更新个人统计
+void DatabaseManager::updatePlayerStats(const QString& playerId, int position, double ptChange) {
+    QSqlQuery query;
+    query.prepare(
+        "UPDATE players SET "
+        "pt = pt + :pt, "
+        "count_total = count_total + 1, "
+        "count_1 = count_1 + :pos1, "
+        "count_2 = count_2 + :pos2, "
+        "count_3 = count_3 + :pos3, "
+        "count_4 = count_4 + :pos4 "
+        "WHERE id = :id"
+        );
+
+    query.bindValue(":pt", ptChange);
+    query.bindValue(":pos1", position == 1 ? 1 : 0);
+    query.bindValue(":pos2", position == 2 ? 1 : 0);
+    query.bindValue(":pos3", position == 3 ? 1 : 0);
+    query.bindValue(":pos4", position == 4 ? 1 : 0);
+    query.bindValue(":id", playerId);
+
+    if (!query.exec()) {
+        qDebug() << "更新选手统计失败:" << query.lastError();
+    }
 }

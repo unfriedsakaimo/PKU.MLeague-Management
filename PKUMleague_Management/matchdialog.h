@@ -11,6 +11,11 @@
 #include <QVBoxLayout>
 #include <QMessageBox>
 #include <QSet>
+#include <QGroupBox>
+#include <QDoubleSpinBox>
+#include <QGridLayout>
+#include <QLabel>
+#include <algorithm>
 #include "logindialog.h"
 #include "DatabaseManager.h"
 
@@ -46,6 +51,7 @@ public:
 private slots:
     /* 点击“确定”触发：校验表单并填充 rec_ */
     void onAccept();
+    void onStateChanged(int index);
 
 private:
     /* 构造 UI 控件与布局（供两个 ctor 共用）*/
@@ -68,6 +74,14 @@ private:
     QComboBox          *Nplayer    = nullptr;
     QComboBox          *state      = nullptr;
     QDialogButtonBox   *btnBox     = nullptr;
+
+    // 结果输入控件
+    QGroupBox *resultsGroup;
+    QDoubleSpinBox *spEpt, *spSpt, *spWpt, *spNpt;
+    QComboBox *cbEpos, *cbSpos, *cbWpos, *cbNpos;
+
+    void updatePositionsFromPt();
+
 };
 
 #endif // MATCHDIALOG_H
